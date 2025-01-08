@@ -1,6 +1,6 @@
 "use client"
 
-import React from 'react'
+import React, { useState } from 'react'
 import { motion } from 'framer-motion'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
@@ -10,8 +10,16 @@ import { Badge } from "@/components/ui/badge"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { Bar, BarChart, Line, LineChart, ResponsiveContainer, XAxis, YAxis, CartesianGrid, Tooltip } from "recharts"
 import { ChartContainer, ChartTooltip } from "@/components/ui/charts"
-import { Wallet, PiggyBank, Activity, TrendingUp, Calendar, DollarSign, CreditCard, ArrowUpRight, ArrowDownRight, Target, Award, Zap, ChevronRight, Lightbulb, TrendingDown, AlertCircle, Gift, Smartphone } from 'lucide-react'
+import { Wallet, PiggyBank, Activity, TrendingUp, Calendar, DollarSign, CreditCard, ArrowUpRight, ArrowDownRight, Target, Award, Zap, ChevronRight, Lightbulb, TrendingDown, AlertCircle, Gift, Smartphone, Shield, Trophy, Star } from 'lucide-react'
 import { cn } from "@/lib/utils"
+import { UpiPaymentModal } from '../components/UpiPaymentModal'
+import { SpendingLimitsModal } from '../components/SpendingLimitsModal'
+import { ChallengesModal } from '../components/ChallenegesModal'
+import { InsightsModal } from '../components/InsightsModal'
+import { GoalsTracker } from '../components/GoalsTracker'
+import { FinancialInsights } from '../components/FinancialInsights'
+import { ParentalControls } from '../components/ParentalControls'
+import { RewardsSection } from '../components/RewardsSection'
 
 const statsCards = [
   {
@@ -362,7 +370,7 @@ function AchievementItem({ achievement, index }) {
   )
 }
 
-function QuickActionButton({ icon: Icon, title, gradient }) {
+function QuickActionButton({ icon: Icon, title, gradient, onClick }) {
   return (
     <Button 
       variant="outline" 
@@ -373,6 +381,7 @@ function QuickActionButton({ icon: Icon, title, gradient }) {
         "hover:border-transparent hover:before:opacity-[0.08] hover:after:opacity-[0.05]",
         gradient
       )}
+      onClick={onClick}
     >
       <Icon className={cn(
         "h-6 w-6 mb-2 transition-transform duration-500",
@@ -384,6 +393,11 @@ function QuickActionButton({ icon: Icon, title, gradient }) {
 }
 
 export default function Dashboard() {
+  const [isUpiModalOpen, setIsUpiModalOpen] = useState(false)
+  const [isSpendingLimitsOpen, setIsSpendingLimitsOpen] = useState(false)
+  const [isChallengesOpen, setIsChallengesOpen] = useState(false)
+  const [isInsightsOpen, setIsInsightsOpen] = useState(false)
+
   return (
     <div className="space-y-4 md:space-y-8 p-2 md:p-8 max-w-7xl mx-auto">
       {/* Header Section */}
@@ -408,29 +422,25 @@ export default function Dashboard() {
       </div>
 
       {/* Stats Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 md:gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3 md:gap-6">
         {statsCards.map((card) => (
           <StatsCard key={card.title} card={card} />
         ))}
       </div>
 
-      {/* Insights Section */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 md:gap-6">
-        {insights.map((insight, index) => (
-          <InsightCard 
-            key={insight.title} 
-            insight={insight}
-          />
-        ))}
-      </div>
-
-      {/* Charts Section */}
+      {/* Financial Overview Section */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-3 md:gap-6">
         <SpendingChart />
         <SavingsChart />
       </div>
 
-      {/* Main Content */}
+      {/* Goals and Insights Section */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-3 md:gap-6">
+        <GoalsTracker />
+        <FinancialInsights />
+      </div>
+
+      {/* Main Content Section */}
       <div className="grid grid-cols-1 lg:grid-cols-7 gap-3 md:gap-6">
         {/* Transactions Section */}
         <Card className="lg:col-span-4">
@@ -458,12 +468,12 @@ export default function Dashboard() {
           </CardContent>
         </Card>
 
-        {/* Achievements Section */}
+        {/* Rewards Section */}
         <Card className="lg:col-span-3">
           <CardHeader>
             <div className="flex flex-col md:flex-row items-start md:items-center justify-between space-y-2 md:space-y-0">
               <div className="space-y-1">
-                <CardTitle className="text-lg md:text-xl">Achievements</CardTitle>
+                <CardTitle className="text-lg md:text-xl">Rewards & Achievements</CardTitle>
                 <CardDescription className="text-sm">Your financial milestones</CardDescription>
               </div>
               <Badge variant="secondary" className="bg-amber-100 text-amber-700 hover:bg-amber-100">
@@ -483,6 +493,12 @@ export default function Dashboard() {
         </Card>
       </div>
 
+      {/* Controls and Settings Section */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-3 md:gap-6">
+        <ParentalControls />
+        <RewardsSection />
+      </div>
+
       {/* Quick Actions */}
       <Card>
         <CardHeader className="space-y-1">
@@ -490,30 +506,72 @@ export default function Dashboard() {
           <CardDescription className="text-sm">Frequently used financial tools</CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-3 md:gap-4">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4">
             <QuickActionButton 
               icon={PiggyBank} 
               title="Add to Savings" 
               gradient="before:from-blue-500 before:to-blue-700 after:from-blue-600 after:to-blue-800" 
             />
             <QuickActionButton 
-              icon={CreditCard} 
-              title="Record Expense" 
-              gradient="before:from-green-500 before:to-green-700 after:from-green-600 after:to-green-800" 
+              icon={Smartphone} 
+              title="UPI Payment" 
+              gradient="before:from-rose-500 before:to-rose-700 after:from-rose-600 after:to-rose-800"
+              onClick={() => setIsUpiModalOpen(true)}
+            />
+            <QuickActionButton 
+              icon={Shield} 
+              title="Spending Limits" 
+              gradient="before:from-emerald-500 before:to-emerald-700 after:from-emerald-600 after:to-emerald-800"
+              onClick={() => setIsSpendingLimitsOpen(true)}
+            />
+            <QuickActionButton 
+              icon={Trophy} 
+              title="Challenges" 
+              gradient="before:from-amber-500 before:to-amber-700 after:from-amber-600 after:to-amber-800"
+              onClick={() => setIsChallengesOpen(true)}
+            />
+            <QuickActionButton 
+              icon={TrendingUp} 
+              title="Insights" 
+              gradient="before:from-purple-500 before:to-purple-700 after:from-purple-600 after:to-purple-800"
+              onClick={() => setIsInsightsOpen(true)}
             />
             <QuickActionButton 
               icon={Target} 
               title="Set New Goal" 
-              gradient="before:from-purple-500 before:to-purple-700 after:from-purple-600 after:to-purple-800" 
+              gradient="before:from-indigo-500 before:to-indigo-700 after:from-indigo-600 after:to-indigo-800" 
             />
             <QuickActionButton 
-              icon={Smartphone} 
-              title="UPI Payment" 
-              gradient="before:from-rose-500 before:to-rose-700 after:from-rose-600 after:to-rose-800" 
+              icon={Star} 
+              title="Rewards" 
+              gradient="before:from-yellow-500 before:to-yellow-700 after:from-yellow-600 after:to-yellow-800" 
+            />
+            <QuickActionButton 
+              icon={CreditCard} 
+              title="Record Expense" 
+              gradient="before:from-green-500 before:to-green-700 after:from-green-600 after:to-green-800" 
             />
           </div>
         </CardContent>
       </Card>
+
+      {/* Modals */}
+      <UpiPaymentModal 
+        isOpen={isUpiModalOpen}
+        onClose={() => setIsUpiModalOpen(false)}
+      />
+      <SpendingLimitsModal 
+        isOpen={isSpendingLimitsOpen}
+        onClose={() => setIsSpendingLimitsOpen(false)}
+      />
+      <ChallengesModal 
+        isOpen={isChallengesOpen}
+        onClose={() => setIsChallengesOpen(false)}
+      />
+      <InsightsModal 
+        isOpen={isInsightsOpen}
+        onClose={() => setIsInsightsOpen(false)}
+      />
     </div>
   )
 }
