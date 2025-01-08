@@ -1,0 +1,30 @@
+.auth-card {
+    @apply relative overflow-hidden rounded-lg border bg-card p-6;
+  }
+  
+  .auth-card::before {
+    content: '';
+    @apply absolute inset-0 bg-gradient-to-br from-primary-light/5 to-primary-lighter/5 opacity-0 transition-opacity duration-200;
+  }
+  
+  .auth-card:hover::before {
+    @apply opacity-100;
+  }
+  
+  .auth-input {
+    @apply h-10 rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50;
+  }
+  
+  .auth-button {
+    @apply inline-flex items-center justify-center rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50;
+  }
+  
+  .auth-social-button {
+    @apply auth-button w-full border border-input bg-background hover:bg-accent hover:text-accent-foreground h-10 px-4 py-2;
+  }
+  
+  .auth-submit-button {
+    @apply auth-button w-full bg-primary text-primary-foreground hover:bg-primary/90 h-10 px-4 py-2;
+  }
+  
+  
